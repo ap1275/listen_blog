@@ -17,10 +17,12 @@ exports.setup = function(options, seedLink) {
 exports.up = function(db) {
   db.runSql('insert into site_lists (title,url,format) values(\'yahoo japan topics\', \'https://news.yahoo.co.jp/pickup/rss.xml\', \'rss\')', err => console.error(err))
   db.runSql('insert into site_lists (title,url,format) values(\'ねとらぼ\', \'https://headlines.yahoo.co.jp/rss/it_nlab-c_ent.xml\', \'rss\')', err => console.error(err))
-  db.runSql('insert into site_roles (site_list_id,role) values(1, \'.hbody\')', err => console.error(err))
-  db.runSql('insert into site_roles (site_list_id,role) values(1, \'.ynDetailText\')', err => console.error(err))
-  db.runSql('insert into site_roles (site_list_id,role) values(2, \'.hbody\')', err => console.error(err))
-  return db.runSql('insert into site_roles (site_list_id,role) values(2, \'.ynDetailText\')', err => console.error(err))
+  db.runSql('insert into site_roles (site_list_id,role,priority) values(1, \'.articleMain\', 998)', err => console.error(err))
+  db.runSql('insert into site_roles (site_list_id,role,priority) values(1, \'.hbody\', 999)', err => console.error(err))
+  db.runSql('insert into site_roles (site_list_id,role,priority) values(1, \'.ynDetailText\', 1000)', err => console.error(err))
+  db.runSql('insert into site_roles (site_list_id,role,priority) values(2, \'.articleMain\', 998)', err => console.error(err))
+  db.runSql('insert into site_roles (site_list_id,role,priority) values(2, \'.hbody\', 999)', err => console.error(err))
+  return db.runSql('insert into site_roles (site_list_id,role,priority) values(2, \'.ynDetailText\', 1000)', err => console.error(err))
 };
 
 exports.down = function(db) {

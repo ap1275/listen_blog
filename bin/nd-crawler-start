@@ -38,24 +38,8 @@ module ND
     # do parse at parallel
     def parse(id, body, format)
       case format
-      when 'html' then extract_html body
       when 'rss' then update_rss(id, body)
-      when 'atom' then update_atom(id, body)
       else p 'error : unknown format'
-      end
-    end
-
-    # get title and link from atom
-    def update_atom(id, body)
-      doc = Nokogiri::XML(body)
-      doc.remove_namespaces!
-      doc.xpath('feed/entry').each do |i|
-        title = i.xpath('title').text
-        link = i.xpath('origLink').text
-        st = @sql.prepare "select exists(select 1 from article_lists where article_url=?)"
-        st.execute(link).each_with_index do |res, index|
-          insert_article_list(res, id, title, link) if index == 0
-        end
       end
     end
 
@@ -78,7 +62,7 @@ module ND
         stmt = @sql.prepare "insert into article_lists (site_list_id, article_title, article_url) values(?,?,?)"
         stmt.execute(id, title, link)
         id_res = @sql.query 'select last_insert_id() from article_lists'
-        roles = @sql.query 'select role from site_roles where deleted_at is null'
+        roles = @sql.query "select role from site_roles where deleted_at is null and site_list_id=#{id} order by priority desc"
         r = @http.get(link, :follow_redirect => true)
         id_res.each_with_index {|nowid, i| extract_html(r.body, roles, nowid['last_insert_id()']) if r.status == 200 && i == 0}
       end
@@ -91,9 +75,11 @@ module ND
       roles.each do |r|
         doc.search(r['role']).each do |d|
           s = d.text
+          break unless s.empty?
         end
+        break unless s.empty?
       end
-      insert_article(id, body, s) if s != ''
+      insert_article(id, body, s)
     end
 
     # insert html and trimmed text
