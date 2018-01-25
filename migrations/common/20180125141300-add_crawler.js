@@ -31,6 +31,7 @@ exports.up = function(db) {
       db.createTable('site_roles', {
         id: {type: 'int', primaryKey: true, autoIncrement: true, unsigned: true},
         site_list_id: {type: 'int', notNull: true, unsigned: true},
+        priority: {type: 'int', notNull: true, unsigned: true},
         role: {type: 'text', notNull: true},
         created_at: {type: 'timestamp', notNull: true, defaultValue: new String('CURRENT_TIMESTAMP')},
         deleted_at: {type: 'timestamp', notNull: false}
@@ -70,6 +71,7 @@ exports.up = function(db) {
 
 exports.down = function(db) {
   return db.dropTable('site_lists')
+  .then(res => db.dropTable('site_roles'), err => console.error(err))
   .then(res => db.dropTable('articles'), err => console.error(err))
   .then(res => db.dropTable('article_lists'), err => console.error(err))
 };
