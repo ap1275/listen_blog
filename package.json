@@ -1,0 +1,21 @@
+{
+  "name": "news-deliver",
+  "version": "0.1.0",
+  "description": "news deliver and crawler",
+  "main": "index.js",
+  "author": "0xdead6eef <fake@mail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "cookie-parser": "^1.4.3",
+    "db-migrate": "^0.10.2",
+    "db-migrate-mysql": "^1.1.10",
+    "dotenv": "^4.0.0",
+    "express": "^4.16.2",
+    "express-graphql": "^0.6.11",
+    "graphql": "^0.12.3",
+    "helmet": "^3.9.0",
+    "morgan": "^1.9.0",
+    "mysql2": "^1.5.1",
+    "pm2": "^2.9.1"
+  }
+}

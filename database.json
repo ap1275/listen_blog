@@ -1,0 +1,9 @@
+{
+   "dev": {
+      "driver": "mysql",
+      "user": {"ENV": "ND_DB_USER"},
+      "password": {"ENV": "ND_DB_PASS"},
+      "host": {"ENV": "ND_DB_HOST"},
+      "database": {"ENV": "ND_DB_NAME"}
+   }
+}
