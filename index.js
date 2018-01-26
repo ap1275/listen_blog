@@ -3,7 +3,7 @@ const helmet = require('helmet')
 const morgan = require('morgan')
 const bp = require('body-parser')
 const cp = require('cookie-parser')
-const api1_0 = require('./app/api/v1.0/api1.0')
+const api = require('./app/api/v1.0/root')
 const app = express()
 
 // disable etag header
@@ -36,7 +36,7 @@ app.use(bp.json())
 app.use(cp())
 
 // routing
-app.use('/api/1/0', api1_0)
+app.use('/api', api)
 
 // global 404 page
 app.use((req, res) => {

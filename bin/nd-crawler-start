@@ -59,7 +59,7 @@ module ND
     # insert row into article_lists
     def insert_article_list(res, id, title, link)
       if res['exists(select 1 from article_lists where article_url=?)'] == 0
-        stmt = @sql.prepare "insert into article_lists (site_list_id, article_title, article_url) values(?,?,?)"
+        stmt = @sql.prepare "insert into article_lists (site_list_id, title, article_url) values(?,?,?)"
         stmt.execute(id, title, link)
         id_res = @sql.query 'select last_insert_id() from article_lists'
         roles = @sql.query "select role from site_roles where deleted_at is null and site_list_id=#{id} order by priority desc"

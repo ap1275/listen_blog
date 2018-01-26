@@ -59,7 +59,7 @@ exports.up = function(db) {
       db.createTable('article_lists', {
         id: {type: 'int', primaryKey: true, autoIncrement: true, unsigned: true},
         site_list_id: {type: 'int', notNull: true, unsigned: true},
-        article_title: {type: 'text', notNull: false},
+        title: {type: 'text', notNull: false},
         article_url: {type: 'text', notNull: false},
         created_at: {type: 'datetime', notNull: true, defaultValue: new String('CURRENT_TIMESTAMP')},
         updated_at: {type: 'datetime', notNull: false},
