@@ -1,7 +1,7 @@
 const mysql = require('mysql2')
 require('dotenv').config()
 
-function exec(limit, dateFrom, dateTo) {
+function exec(id, limit, dateFrom, dateTo) {
   return new Promise(resolve => {
     limit > 1000 ? limit = 1000 : limit
     const c = mysql.createConnection({
@@ -10,7 +10,7 @@ function exec(limit, dateFrom, dateTo) {
       password: process.env.ND_DB_PASS,
       database: process.env.ND_DB_NAME
     })
-    let q = 'select articles.article,article_lists.title from articles inner join article_lists on articles.article_list_id=article_lists.id where articles.deleted_at is null'
+    let q = `select articles.article,article_lists.title from articles inner join article_lists on articles.article_list_id=article_lists.id where articles.deleted_at is null and article_lists.site_list_id=${id}`
     if(dateFrom !== undefined && dateTo !== undefined) {
       q += ` and articles.created_at > '${dateFrom}' and articles.created_at < '${dateTo}'`
     }

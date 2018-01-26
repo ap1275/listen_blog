@@ -7,14 +7,15 @@ const article = require('./src/article')
 const router = express.Router()
 require('dotenv').config()
 
+// api roles
 const schema = buildSchema(`
   type Query {
-    search(limit: Int!, title: String, url: String): [List]
+    search(limit: Int!, title: String, url: String): [SearchResult]
   }
   type Mutation {
     addSite(title: String!, url: String!): String
   }
-  type List {
+  type SearchResult {
     title: String
     url: String
     articles(limit: Int!, dateFrom: String, dateTo: String): [Article]
@@ -25,36 +26,37 @@ const schema = buildSchema(`
   }
 `)
 
-class List {
-  constructor(title, url) {
+class SearchResult {
+  constructor(id, title, url) {
     this.title = title
     this.url = url
+    this.id = id
   }
 
   articles({limit, dateFrom, dateTo}) {
-    return (async () => await article.exec(limit, dateFrom, dateTo))()
+    return (async () => await article.exec(this.id, limit, dateFrom, dateTo))()
   }
 }
 
-const exec = async (limit,title,url) => {
+const search_api = async (limit,title,url) => {
   let sites = await site_url.exec(limit)
   const lists = []
   for(let i = 0; i < sites.length; ++i) {
     if(title === undefined && url === undefined) {
-      lists.push(new List(sites[i]['title'], sites[i]['url']))
+      lists.push(new SearchResult(sites[i]['id'], sites[i]['title'], sites[i]['url']))
     }
     if(title !== undefined && sites[i]['title'] === title) {
-      lists.push(new List(title, sites[i]['url']))
+      lists.push(new SearchResult(sites[i]['id'], title, sites[i]['url']))
     }
     if(url !== undefined && sites[i]['url'] === url) {
-      lists.push(new List(sites[i]['title'], url))
+      lists.push(new SearchResult(sites[i]['id'], sites[i]['title'], url))
     }
   }
   return lists
 }
 
 const root = { 
-  search: async({limit, title, url}) => await exec(limit, title, url),
+  search: async({limit, title, url}) => await search_api(limit, title, url),
   addSite: async () => 'not implemented',
 }
 

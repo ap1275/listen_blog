@@ -10,7 +10,7 @@ function exec(limit) {
       password: process.env.ND_DB_PASS,
       database: process.env.ND_DB_NAME
     })
-    c.query(`select title,url,created_at from site_lists where deleted_at is NULL limit ${limit}`, (e, r, f) => {
+    c.query(`select title,url,id from site_lists where deleted_at is NULL limit ${limit}`, (e, r, f) => {
       if(e) {
         console.error(`err : ${e}`)
       } else {
