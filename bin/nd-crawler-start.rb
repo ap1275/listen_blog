@@ -111,6 +111,7 @@ end
 #==============================================================================
 def main
   Dotenv.load
+  return if ENV['ND_EXEC_ENV'] != 'production'
   # get arg
   time = ARGV.length < 2 ? '15m' : "%s%s" % [ARGV[0], ARGV[1]]
   # check environment variables
