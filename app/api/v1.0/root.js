@@ -7,14 +7,18 @@ const article = require('./src/article')
 const router = express.Router()
 require('dotenv').config()
 
+// api roles
 const schema = buildSchema(`
   type Query {
-    list(count: Int!, title: String, url: String): [List]
+    search(limit: Int!, title: String, url: String): [SearchResult]
   }
-  type List {
+  type Mutation {
+    addSite(title: String!, url: String!): String
+  }
+  type SearchResult {
     title: String
     url: String
-    articles(count: Int!, dateFrom: String, dateTo: String): [Article]
+    articles(limit: Int!, dateFrom: String, dateTo: String): [Article]
   }
   type Article {
     title: String
@@ -22,36 +26,38 @@ const schema = buildSchema(`
   }
 `)
 
-class List {
-  constructor(title, url) {
+class SearchResult {
+  constructor(id, title, url) {
     this.title = title
     this.url = url
+    this.id = id
   }
 
-  articles({count, dateFrom, dateTo}) {
-    return (async () => await article.exec(count, dateFrom, dateTo))()
+  articles({limit, dateFrom, dateTo}) {
+    return (async () => await article.exec(this.id, limit, dateFrom, dateTo))()
   }
 }
 
-const exec = async (count,title,url) => {
-  let sites = await site_url.exec(count)
+const search_api = async (limit,title,url) => {
+  let sites = await site_url.exec(limit)
   const lists = []
   for(let i = 0; i < sites.length; ++i) {
     if(title === undefined && url === undefined) {
-      lists.push(new List(sites[i]['title'], sites[i]['url']))
+      lists.push(new SearchResult(sites[i]['id'], sites[i]['title'], sites[i]['url']))
     }
     if(title !== undefined && sites[i]['title'] === title) {
-      lists.push(new List(title, sites[i]['url']))
+      lists.push(new SearchResult(sites[i]['id'], title, sites[i]['url']))
     }
     if(url !== undefined && sites[i]['url'] === url) {
-      lists.push(new List(sites[i]['title'], url))
+      lists.push(new SearchResult(sites[i]['id'], sites[i]['title'], url))
     }
   }
   return lists
 }
 
 const root = { 
-  list: async({count, title, url}) => await exec(count, title, url),
+  search: async({limit, title, url}) => await search_api(limit, title, url),
+  addSite: async () => 'not implemented',
 }
 
 router.use('/', graphqlHTTP({
