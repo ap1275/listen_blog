@@ -12,6 +12,10 @@ app.set('etag', false)
 // make response header more secure
 app.use(helmet())
 
+// enable body-parser
+app.use(bp.urlencoded({extended: true}))
+app.use(bp.json())
+
 // setup access log
 //
 // log format:
@@ -27,10 +31,6 @@ app.use(morgan((tokens, req, res) => {
     tokens['response-time'](req, res),'ms'
   ].join('')
 }))
-
-// enable body-parser
-app.use(bp.urlencoded({extended: true}))
-app.use(bp.json())
 
 // enable cookie-parser
 app.use(cp())

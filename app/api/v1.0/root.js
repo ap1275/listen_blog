@@ -9,12 +9,15 @@ require('dotenv').config()
 
 const schema = buildSchema(`
   type Query {
-    list(count: Int!, title: String, url: String): [List]
+    search(limit: Int!, title: String, url: String): [List]
+  }
+  type Mutation {
+    addSite(title: String!, url: String!): String
   }
   type List {
     title: String
     url: String
-    articles(count: Int!, dateFrom: String, dateTo: String): [Article]
+    articles(limit: Int!, dateFrom: String, dateTo: String): [Article]
   }
   type Article {
     title: String
@@ -28,13 +31,13 @@ class List {
     this.url = url
   }
 
-  articles({count, dateFrom, dateTo}) {
-    return (async () => await article.exec(count, dateFrom, dateTo))()
+  articles({limit, dateFrom, dateTo}) {
+    return (async () => await article.exec(limit, dateFrom, dateTo))()
   }
 }
 
-const exec = async (count,title,url) => {
-  let sites = await site_url.exec(count)
+const exec = async (limit,title,url) => {
+  let sites = await site_url.exec(limit)
   const lists = []
   for(let i = 0; i < sites.length; ++i) {
     if(title === undefined && url === undefined) {
@@ -51,7 +54,8 @@ const exec = async (count,title,url) => {
 }
 
 const root = { 
-  list: async({count, title, url}) => await exec(count, title, url),
+  search: async({limit, title, url}) => await exec(limit, title, url),
+  addSite: async () => 'not implemented',
 }
 
 router.use('/', graphqlHTTP({

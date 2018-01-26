@@ -1,9 +1,9 @@
 const mysql = require('mysql2')
 require('dotenv').config()
 
-function exec(count, dateFrom, dateTo) {
+function exec(limit, dateFrom, dateTo) {
   return new Promise(resolve => {
-    count > 1000 ? count = 1000 : count
+    limit > 1000 ? limit = 1000 : limit
     const c = mysql.createConnection({
       host: process.env.ND_DB_HOST,
       user: process.env.ND_DB_USER,
@@ -20,7 +20,7 @@ function exec(count, dateFrom, dateTo) {
     else if(dateFrom !== undefined) {
       q += ` and articles.created_at > '${dateFrom}'`
     }
-    q += ` order by articles.created_at desc limit ${count}`
+    q += ` order by articles.created_at desc limit ${limit}`
     c.query(q, (e, r, f) => {
       if(e) {
         console.error(`err : ${e}`)
