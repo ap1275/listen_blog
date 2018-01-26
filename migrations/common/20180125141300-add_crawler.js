@@ -23,8 +23,8 @@ exports.up = function(db) {
     title: {type: 'text', notNull: true},
     url: {type: 'text', notNull: true},
     format: {type: 'string', notNull: true},
-    created_at: {type: 'timestamp', notNull: true, defaultValue: new String('CURRENT_TIMESTAMP')},
-    deleted_at: {type: 'timestamp', notNull: false}
+    created_at: {type: 'datetime', notNull: true, defaultValue: new String('CURRENT_TIMESTAMP')},
+    deleted_at: {type: 'datetime', notNull: false}
   })
   .then(
     res => {
@@ -33,8 +33,8 @@ exports.up = function(db) {
         site_list_id: {type: 'int', notNull: true, unsigned: true},
         priority: {type: 'int', notNull: true, unsigned: true},
         role: {type: 'text', notNull: true},
-        created_at: {type: 'timestamp', notNull: true, defaultValue: new String('CURRENT_TIMESTAMP')},
-        deleted_at: {type: 'timestamp', notNull: false}
+        created_at: {type: 'datetime', notNull: true, defaultValue: new String('CURRENT_TIMESTAMP')},
+        deleted_at: {type: 'datetime', notNull: false}
       })
     },
     err => console.error(err)
@@ -47,9 +47,9 @@ exports.up = function(db) {
         original_article: {type: 'text', notNull: true},
         article: {type: 'text', notNull: true},
         read: {type: 'boolean', notNull: true, defaultValue: false},
-        created_at: {type: 'timestamp', notNull: true, defaultValue: new String('CURRENT_TIMESTAMP')},
-        updated_at: {type: 'timestamp', notNull: false},
-        deleted_at: {type: 'timestamp', notNull: false}
+        created_at: {type: 'datetime', notNull: true, defaultValue: new String('CURRENT_TIMESTAMP')},
+        updated_at: {type: 'datetime', notNull: false},
+        deleted_at: {type: 'datetime', notNull: false}
       })
     },
     err => console.error(err)
@@ -61,8 +61,8 @@ exports.up = function(db) {
         site_list_id: {type: 'int', notNull: true, unsigned: true},
         article_title: {type: 'text', notNull: false},
         article_url: {type: 'text', notNull: false},
-        created_at: {type: 'timestamp', notNull: true, defaultValue: new String('CURRENT_TIMESTAMP')},
-        updated_at: {type: 'timestamp', notNull: false},
+        created_at: {type: 'datetime', notNull: true, defaultValue: new String('CURRENT_TIMESTAMP')},
+        updated_at: {type: 'datetime', notNull: false},
       })
     },
     err => console.error(err)
