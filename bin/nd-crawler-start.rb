@@ -103,7 +103,7 @@ def register_pid
   c = redis.get('crawler_count')
   c = 1 if c == nil
   redis.set('crawler' + c.to_s, $$)
-  redis.set('crawler_count', c + 1)
+  redis.set('crawler_count', c.to_i + 1)
 end
   
 #==============================================================================
@@ -111,7 +111,6 @@ end
 #==============================================================================
 def main
   Dotenv.load
-  return if ENV['ND_EXEC_ENV'] != 'production'
   # get arg
   time = ARGV.length < 2 ? '15m' : "%s%s" % [ARGV[0], ARGV[1]]
   # check environment variables
