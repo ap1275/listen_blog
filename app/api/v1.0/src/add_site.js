@@ -22,11 +22,11 @@ const exec = async (title, url, format, roles) => {
 }
 
 function get_last_sites_id(handle) {
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     let q = `select last_insert_id() from site_lists`
     handle.query(q, (e, r, f) => {
       if(e) {
-        console.error(`err : ${e}`)
+        reject(e)
       } else {
         resolve(r)
       }
@@ -35,11 +35,11 @@ function get_last_sites_id(handle) {
 }
 
 function insert_roles(id, role, priority, handle) {
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     let q = `insert into site_roles(site_list_id,role,priority) values('${id}','${role}','${priority}')`
     handle.query(q, (e, r, f) => {
       if(e) {
-        console.error(`err : ${e}`)
+        reject(e)
       } else {
         resolve(r)
       }
@@ -48,11 +48,11 @@ function insert_roles(id, role, priority, handle) {
 }
 
 function insert_sites(title, url, format, handle) {
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     let q = `insert into site_lists(title,url,format) values('${title}','${url}','${format}')`
     handle.query(q, (e, r, f) => {
       if(e) {
-        console.error(`err : ${e}`)
+        reject(e)
       } else {
         resolve(r)
       }
