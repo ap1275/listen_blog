@@ -2,7 +2,7 @@ const mysql = require('mysql2')
 require('dotenv').config()
 
 function exec(limit) {
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     limit > 1000 ? limit = 1000 : limit
     const c = mysql.createConnection({
       host: process.env.ND_DB_HOST,
@@ -12,7 +12,7 @@ function exec(limit) {
     })
     c.query(`select title,url,id from site_lists where deleted_at is NULL limit ${limit}`, (e, r, f) => {
       if(e) {
-        console.error(`err : ${e}`)
+        reject(e)
       } else {
         resolve(r)
       }

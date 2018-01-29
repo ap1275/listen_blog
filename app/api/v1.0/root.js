@@ -4,6 +4,7 @@ const graphqlHTTP = require('express-graphql')
 const { buildSchema } = require('graphql')
 const site_url = require('./src/site_url')
 const article = require('./src/article')
+const add_site = require('./src/add_site')
 const router = express.Router()
 require('dotenv').config()
 
@@ -13,7 +14,11 @@ const schema = buildSchema(`
     search(limit: Int!, title: String, url: String): [SearchResult]
   }
   type Mutation {
-    addSite(title: String!, url: String!): String
+    addSite(title: String!, url: String!, format: String!, roles: [Role]!): String!
+  }
+  input Role {
+    role: String!
+    priority: Int!
   }
   type SearchResult {
     title: String
@@ -26,6 +31,9 @@ const schema = buildSchema(`
   }
 `)
 
+//
+// search api
+//
 class SearchResult {
   constructor(id, title, url) {
     this.title = title
@@ -55,9 +63,14 @@ const search_api = async (limit,title,url) => {
   return lists
 }
 
+//
+// add site api
+//
+const add_site_api = async (title, url, format, roles) => await add_site.exec(title,url,format,roles)
+
 const root = { 
   search: async({limit, title, url}) => await search_api(limit, title, url),
-  addSite: async () => 'not implemented',
+  addSite: async ({title, url, format, roles}) => await add_site_api(title,url,format,roles),
 }
 
 router.use('/', graphqlHTTP({
