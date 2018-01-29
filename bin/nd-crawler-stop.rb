@@ -2,16 +2,12 @@
 require 'bundler/setup'
 require 'redis'
 
-def main
+def main(i)
   redis = Redis.new
-  i = 1
-  loop do
-    pid = redis.get('crawler' + i.to_s)
-    break if pid == nil
-    system "kill #{pid}"
-    i = i + 1
-  end
-  redis.flushall
+  pid = redis.get('crawler' + i.to_s)
+  return if pid == nil
+  system "kill #{pid}"
+  redis.del('crawler' + i.to_s)
 end
 
-main
+main ARGV[0]

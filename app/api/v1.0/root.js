@@ -1,6 +1,8 @@
 const express = require('express')
 const mysql = require('mysql2')
+const execSync = require('child_process').execSync
 const graphqlHTTP = require('express-graphql')
+const redis = require("redis")
 const { buildSchema } = require('graphql')
 const site_url = require('./src/site_url')
 const article = require('./src/article')
@@ -15,6 +17,12 @@ const schema = buildSchema(`
   }
   type Mutation {
     addSite(title: String!, url: String!, format: String!, roles: [Role]!): String!
+    stop_crawler(id: Int!): String!
+    start_crawler(num: Int!, deg: String!): Int!
+  }
+  type Msg {
+    id: String!
+    msg: String!
   }
   input Role {
     role: String!
@@ -68,9 +76,35 @@ const search_api = async (limit,title,url) => {
 //
 const add_site_api = async (title, url, format, roles) => await add_site.exec(title,url,format,roles)
 
+//
+// crawler api
+//
+const start_crawler = async (num, deg) => {
+  const result = await execSync(`./bin/nd-crawler-start.rb ${num} ${deg}`).toString()
+  const {promisify} = require('util')
+  const client = redis.createClient()
+  const getAsync = promisify(client.get).bind(client);
+  const ret = await getAsync('crawler_count')
+  if(ret === null) return 0
+  return ret
+}
+
+//
+// crawler api
+//
+const stop_crawler = async (id) => {
+  const result = execSync(`./bin/nd-crawler-stop.rb ${id}`).toString()
+  return result
+}
+
+//
+// api root
+//
 const root = { 
   search: async({limit, title, url}) => await search_api(limit, title, url),
   addSite: async ({title, url, format, roles}) => await add_site_api(title,url,format,roles),
+  start_crawler: async ({num, deg}) => await start_crawler(num, deg),
+  stop_crawler: async ({id}) => await stop_crawler(id),
 }
 
 router.use('/', graphqlHTTP({
