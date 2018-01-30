@@ -4,9 +4,9 @@ const execSync = require('child_process').execSync
 const graphqlHTTP = require('express-graphql')
 const redis = require("redis")
 const { buildSchema } = require('graphql')
-const site_url = require('./src/site_url')
-const article = require('./src/article')
-const add_site = require('./src/add_site')
+const search = require('./src/search')
+const create = require('./src/create')
+const update = require('./src/update')
 const router = express.Router()
 require('dotenv').config()
 
@@ -17,8 +17,8 @@ const schema = buildSchema(`
     list_active_crawlers: [Int]
   }
   type Mutation {
-    add_site(title: String!, url: String!, format: String!, roles: [Role]!): String!
-    add_roles(id: Int!, roles: [Role]!): String!
+    create_site(title: String!, url: String!, format: String!, roles: [Role]!): String!
+    create_roles(id: Int!, roles: [Role]!): String!
     update_site(id: Int!, title: String, url: String, format: String, roles: [Role]): String!
     stop_crawler(id: Int!): String!
     start_crawler(num: Int!, deg: String!): Int!
@@ -56,15 +56,15 @@ class SearchResult {
   }
 
   articles({limit, dateFrom, dateTo}) {
-    return (async () => await article.exec(this.id, limit, dateFrom, dateTo))()
+    return (async () => await search.article(this.id, limit, dateFrom, dateTo))()
   }
 }
 
 const search_api = async (limit,title,url) => {
-  let sites = await site_url.exec(limit)
+  let sites = await search.sites(limit)
   const lists = []
   for(let i = 0; i < sites.length; ++i) {
-    let roles = await site_url.exec_roles(sites[i]['id'])
+    let roles = await search.roles(sites[i]['id'])
     if(title === undefined && url === undefined) {
       lists.push(new SearchResult(sites[i]['id'], sites[i]['title'], sites[i]['url'], roles))
     }
@@ -123,9 +123,9 @@ const list_active_crawlers = async () => {
 const root = { 
   search: async({limit, title, url}) => await search_api(limit, title, url),
   list_active_crawlers: async () => await list_active_crawlers(),
-  add_site: async ({title, url, format, roles}) => await add_site.exec(title,url,format,roles),
-  add_roles: async ({id, roles}) => await add_site.exec_roles(id,roles),
-  update_site: async ({id, title, url, format, roles}) => await add_site.exec_update(id,title,url,format,roles),
+  create_site: async ({title, url, format, roles}) => await create.site(title,url,format,roles),
+  create_roles: async ({id, roles}) => await create.roles(id,roles),
+  update_site: async ({id, title, url, format, roles}) => await update.exec(id,title,url,format,roles),
   start_crawler: async ({num, deg}) => await start_crawler(num, deg),
   stop_crawler: async ({id}) => await stop_crawler(id),
 }
