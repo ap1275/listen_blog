@@ -14,15 +14,12 @@ require('dotenv').config()
 const schema = buildSchema(`
   type Query {
     search(limit: Int!, title: String, url: String): [SearchResult]
+    list_active_crawlers: [Int]
   }
   type Mutation {
     addSite(title: String!, url: String!, format: String!, roles: [Role]!): String!
     stop_crawler(id: Int!): String!
     start_crawler(num: Int!, deg: String!): Int!
-  }
-  type Msg {
-    id: String!
-    msg: String!
   }
   input Role {
     role: String!
@@ -98,10 +95,26 @@ const stop_crawler = async (id) => {
 }
 
 //
+// list crawler api
+// just returns array of crawler's id
+//
+const list_active_crawlers = async () => {
+  const {promisify} = require('util')
+  const client = redis.createClient()
+  const getKeys = promisify(client.keys).bind(client);
+  const ret = await getKeys('crawler[1-999]')
+  for(let i = 0; i < ret.length; ++i) {
+    ret[i] = ret[i].replace(/[a-zA-Z]+/g, '')
+  }
+  return ret
+}
+
+//
 // api root
 //
 const root = { 
   search: async({limit, title, url}) => await search_api(limit, title, url),
+  list_active_crawlers: async () => await list_active_crawlers(),
   addSite: async ({title, url, format, roles}) => await add_site_api(title,url,format,roles),
   start_crawler: async ({num, deg}) => await start_crawler(num, deg),
   stop_crawler: async ({id}) => await stop_crawler(id),
