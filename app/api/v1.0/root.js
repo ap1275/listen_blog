@@ -13,15 +13,19 @@ require('dotenv').config()
 // api roles
 const schema = buildSchema(`
   type Query {
-    search(limit: Int!, title: String, url: String): [SearchResult]
-    list_active_crawlers: [Int]
+    search_sites(limit: Int!, title: String, url: String): [SearchResult]
+    search_crawlers: [Int]
   }
   type Mutation {
-    create_site(title: String!, url: String!, format: String!, roles: [Role]!): String!
+    create_site(title: String!, url: String!, format: String!, roles: [Role]!): CreateSiteResult!
     create_roles(id: Int!, roles: [Role]!): String!
     update_site(id: Int!, title: String, url: String, format: String, roles: [Role]): String!
     stop_crawler(id: Int!): String!
     start_crawler(num: Int!, deg: String!): Int!
+  }
+  type CreateSiteResult {
+    id: Int
+    msg: String!
   }
   input Role {
     role: String!
@@ -82,12 +86,13 @@ const search_api = async (limit,title,url) => {
 // crawler api
 //
 const start_crawler = async (num, deg) => {
-  const result = await execSync(`./bin/nd-crawler-start.rb ${num} ${deg}`).toString()
+  if(deg !== 'm' && deg !== 'h' && deg !== 's') return -1
+  await execSync(`./bin/nd-crawler-start.rb ${num} ${deg}`)
   const {promisify} = require('util')
   const client = redis.createClient()
   const getAsync = promisify(client.get).bind(client);
   const ret = await getAsync('crawler_count')
-  if(ret === null) return 0
+  if(ret === null) return -1
   return ret
 }
 
@@ -106,7 +111,7 @@ const stop_crawler = async (id) => {
 // list crawler api
 // just returns array of crawler's id
 //
-const list_active_crawlers = async () => {
+const crawlers = async () => {
   const {promisify} = require('util')
   const client = redis.createClient()
   const getKeys = promisify(client.keys).bind(client);
@@ -121,8 +126,8 @@ const list_active_crawlers = async () => {
 // api root
 //
 const root = { 
-  search: async({limit, title, url}) => await search_api(limit, title, url),
-  list_active_crawlers: async () => await list_active_crawlers(),
+  search_sites: async({limit, title, url}) => await search_api(limit, title, url),
+  search_crawlers: async () => await crawlers(),
   create_site: async ({title, url, format, roles}) => await create.site(title,url,format,roles),
   create_roles: async ({id, roles}) => await create.roles(id,roles),
   update_site: async ({id, title, url, format, roles}) => await update.exec(id,title,url,format,roles),

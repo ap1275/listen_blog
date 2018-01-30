@@ -32,11 +32,12 @@ const site = async (title, url, format, roles) => {
     for(let i = 0; i < roles.length; ++i) {
       await insert_roles(id[0]['last_insert_id()'], roles[i]['role'], roles[i]['priority'], handle)
     }
+    return {id: id[0]['last_insert_id()'], msg: "OK"}
   }
   catch(err) {
-    return err
+    return {msg: err}
   }
-  return "OK"
+  return {msg: "unknown error"}
 }
 
 function get_last_sites_id(handle) {
