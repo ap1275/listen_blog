@@ -17,7 +17,9 @@ const schema = buildSchema(`
     list_active_crawlers: [Int]
   }
   type Mutation {
-    addSite(title: String!, url: String!, format: String!, roles: [Role]!): String!
+    add_site(title: String!, url: String!, format: String!, roles: [Role]!): String!
+    add_roles(id: Int!, roles: [Role]!): String!
+    update_site(id: Int!, title: String, url: String, format: String, roles: [Role]): String!
     stop_crawler(id: Int!): String!
     start_crawler(num: Int!, deg: String!): Int!
   }
@@ -25,9 +27,15 @@ const schema = buildSchema(`
     role: String!
     priority: Int!
   }
+  type RoleRes {
+    role: String!
+    priority: Int!
+  }
   type SearchResult {
+    id: Int
     title: String
     url: String
+    roles: [RoleRes]
     articles(limit: Int!, dateFrom: String, dateTo: String): [Article]
   }
   type Article {
@@ -40,10 +48,11 @@ const schema = buildSchema(`
 // search api
 //
 class SearchResult {
-  constructor(id, title, url) {
+  constructor(id, title, url, roles) {
     this.title = title
     this.url = url
     this.id = id
+    this.roles = roles
   }
 
   articles({limit, dateFrom, dateTo}) {
@@ -55,23 +64,19 @@ const search_api = async (limit,title,url) => {
   let sites = await site_url.exec(limit)
   const lists = []
   for(let i = 0; i < sites.length; ++i) {
+    let roles = await site_url.exec_roles(sites[i]['id'])
     if(title === undefined && url === undefined) {
-      lists.push(new SearchResult(sites[i]['id'], sites[i]['title'], sites[i]['url']))
+      lists.push(new SearchResult(sites[i]['id'], sites[i]['title'], sites[i]['url'], roles))
     }
     if(title !== undefined && sites[i]['title'] === title) {
-      lists.push(new SearchResult(sites[i]['id'], title, sites[i]['url']))
+      lists.push(new SearchResult(sites[i]['id'], title, sites[i]['url'], roles))
     }
     if(url !== undefined && sites[i]['url'] === url) {
-      lists.push(new SearchResult(sites[i]['id'], sites[i]['title'], url))
+      lists.push(new SearchResult(sites[i]['id'], sites[i]['title'], url, roles))
     }
   }
   return lists
 }
-
-//
-// add site api
-//
-const add_site_api = async (title, url, format, roles) => await add_site.exec(title,url,format,roles)
 
 //
 // crawler api
@@ -91,6 +96,9 @@ const start_crawler = async (num, deg) => {
 //
 const stop_crawler = async (id) => {
   const result = execSync(`./bin/nd-crawler-stop.rb ${id}`).toString()
+  if(result === null || result === "") {
+    return "OK"
+  }
   return result
 }
 
@@ -104,7 +112,7 @@ const list_active_crawlers = async () => {
   const getKeys = promisify(client.keys).bind(client);
   const ret = await getKeys('crawler[1-999]')
   for(let i = 0; i < ret.length; ++i) {
-    ret[i] = ret[i].replace(/[a-zA-Z]+/g, '')
+    ret[i] = ret[i].replace(/[a-zA-Z]+/g, '') // 'crawler[1-999]' -> '[1-999]'
   }
   return ret
 }
@@ -115,7 +123,9 @@ const list_active_crawlers = async () => {
 const root = { 
   search: async({limit, title, url}) => await search_api(limit, title, url),
   list_active_crawlers: async () => await list_active_crawlers(),
-  addSite: async ({title, url, format, roles}) => await add_site_api(title,url,format,roles),
+  add_site: async ({title, url, format, roles}) => await add_site.exec(title,url,format,roles),
+  add_roles: async ({id, roles}) => await add_site.exec_roles(id,roles),
+  update_site: async ({id, title, url, format, roles}) => await add_site.exec_update(id,title,url,format,roles),
   start_crawler: async ({num, deg}) => await start_crawler(num, deg),
   stop_crawler: async ({id}) => await stop_crawler(id),
 }
