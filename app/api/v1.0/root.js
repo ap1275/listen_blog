@@ -90,8 +90,10 @@ const start_crawler = async (num, deg) => {
   await execSync(`./bin/nd-crawler-start.rb ${num} ${deg}`)
   const {promisify} = require('util')
   const client = redis.createClient()
-  const getAsync = promisify(client.get).bind(client);
+  const getAsync = promisify(client.get).bind(client)
   const ret = await getAsync('crawler_count')
+  const quit = promisify(client.quit).bind(client)
+  await quit()
   if(ret === null) return -1
   return ret
 }
@@ -114,11 +116,13 @@ const stop_crawler = async (id) => {
 const crawlers = async () => {
   const {promisify} = require('util')
   const client = redis.createClient()
-  const getKeys = promisify(client.keys).bind(client);
+  const getKeys = promisify(client.keys).bind(client)
   const ret = await getKeys('crawler[1-999]')
   for(let i = 0; i < ret.length; ++i) {
     ret[i] = ret[i].replace(/[a-zA-Z]+/g, '') // 'crawler[1-999]' -> '[1-999]'
   }
+  const quit = promisify(client.quit).bind(client)
+  await quit()
   return ret
 }
 
