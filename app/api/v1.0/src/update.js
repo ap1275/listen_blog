@@ -1,14 +1,8 @@
 const mysql = require('mysql2')
 require('dotenv').config()
 
-const exec = async (id, title, url, format, roles) => {
+const exec = async (id, title, url, format, roles, handle) => {
   try {
-    const handle = mysql.createConnection({
-      host: process.env.ND_DB_HOST,
-      user: process.env.ND_DB_USER,
-      password: process.env.ND_DB_PASS,
-      database: process.env.ND_DB_NAME
-    })
     if(title !== undefined || url !== undefined || format !== undefined) {
       await update_sites(id, title, url, format, handle)
     }
