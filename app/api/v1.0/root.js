@@ -1,5 +1,5 @@
 const express = require('express')
-const mysql = require('mysql2')
+const mysql = require('mysql2/promise')
 const execSync = require('child_process').execSync
 const graphqlHTTP = require('express-graphql')
 const redis = require("redis")
@@ -9,6 +9,16 @@ const create = require('./src/create')
 const update = require('./src/update')
 const router = express.Router()
 require('dotenv').config()
+
+// connection handler
+const conn = mysql.createPool({
+  timeout: 10,
+  connectionLimit: 50,
+  host: process.env.ND_DB_HOST,
+  user: process.env.ND_DB_USER,
+  password: process.env.ND_DB_PASS,
+  database: process.env.ND_DB_NAME
+})
 
 // api roles
 const schema = buildSchema(`
@@ -52,33 +62,40 @@ const schema = buildSchema(`
 // search api
 //
 class SearchResult {
-  constructor(id, title, url, roles) {
+  constructor(id, title, url, roles, c) {
     this.title = title
     this.url = url
     this.id = id
     this.roles = roles
+    this.conn = c
   }
 
   articles({limit, dateFrom, dateTo}) {
-    return (async () => await search.article(this.id, limit, dateFrom, dateTo))()
+    return (async () => await search.article(this.id, limit, dateFrom, dateTo, this.conn))()
   }
 }
 
 const search_api = async (limit,title,url) => {
-  let sites = await search.sites(limit)
   const lists = []
-  for(let i = 0; i < sites.length; ++i) {
-    let roles = await search.roles(sites[i]['id'])
-    if(title === undefined && url === undefined) {
-      lists.push(new SearchResult(sites[i]['id'], sites[i]['title'], sites[i]['url'], roles))
-    }
-    if(title !== undefined && sites[i]['title'] === title) {
-      lists.push(new SearchResult(sites[i]['id'], title, sites[i]['url'], roles))
-    }
-    if(url !== undefined && sites[i]['url'] === url) {
-      lists.push(new SearchResult(sites[i]['id'], sites[i]['title'], url, roles))
+  try {
+    let sites = await search.sites(limit, conn)
+    for(let i = 0; i < sites.length; ++i) {
+      let roles = await search.roles(sites[i]['id'], conn)
+      if(title === undefined && url === undefined) {
+        lists.push(new SearchResult(sites[i]['id'], sites[i]['title'], sites[i]['url'], roles, conn))
+      }
+      if(title !== undefined && sites[i]['title'] === title) {
+        lists.push(new SearchResult(sites[i]['id'], title, sites[i]['url'], roles, conn))
+      }
+      if(url !== undefined && sites[i]['url'] === url) {
+        lists.push(new SearchResult(sites[i]['id'], sites[i]['title'], url, roles, conn))
+      }
     }
   }
+  catch(e) {
+    console.error(e)
+  }
+
   return lists
 }
 
@@ -132,9 +149,9 @@ const crawlers = async () => {
 const root = { 
   search_sites: async({limit, title, url}) => await search_api(limit, title, url),
   search_crawlers: async () => await crawlers(),
-  create_site: async ({title, url, format, roles}) => await create.site(title,url,format,roles),
-  create_roles: async ({id, roles}) => await create.roles(id,roles),
-  update_site: async ({id, title, url, format, roles}) => await update.exec(id,title,url,format,roles),
+  create_site: async ({title, url, format, roles}) => await create.site(title,url,format,roles, conn),
+  create_roles: async ({id, roles}) => await create.roles(id,roles, conn),
+  update_site: async ({id, title, url, format, roles}) => await update.exec(id,title,url,format,roles, conn),
   start_crawler: async ({num, deg}) => await start_crawler(num, deg),
   stop_crawler: async ({id}) => await stop_crawler(id),
 }
