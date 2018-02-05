@@ -1,14 +1,8 @@
 const mysql = require('mysql2')
 require('dotenv').config()
 
-const roles = async (id, roles) => {
+const roles = async (id, roles, handle) => {
   try {
-    const handle = mysql.createConnection({
-      host: process.env.ND_DB_HOST,
-      user: process.env.ND_DB_USER,
-      password: process.env.ND_DB_PASS,
-      database: process.env.ND_DB_NAME
-    })
     for(let i = 0; i < roles.length; ++i) {
       await insert_roles(id, roles[i]['role'], roles[i]['priority'], handle)
     }
@@ -19,14 +13,8 @@ const roles = async (id, roles) => {
   return "OK"
 }
 
-const site = async (title, url, format, roles) => {
+const site = async (title, url, format, roles, handle) => {
   try {
-    const handle = mysql.createConnection({
-      host: process.env.ND_DB_HOST,
-      user: process.env.ND_DB_USER,
-      password: process.env.ND_DB_PASS,
-      database: process.env.ND_DB_NAME
-    })
     await insert_sites(title, url, format, handle)
     let id = await get_last_sites_id(handle)
     for(let i = 0; i < roles.length; ++i) {
